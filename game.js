@@ -19,7 +19,8 @@
   ];
   const SPAWNABLE_MAX_INDEX = 4; // only the first 5 tiers can be dropped by the player
   const MAX_TIER = TIERS.length - 1;
-  const DANGER_Y = 92; // logical px from top - line of death
+  const DANGER_Y = 92; // logical px from top - line of death, at REFERENCE_WIDTH
+  const REFERENCE_WIDTH = 480; // canvas width the tier radii/DANGER_Y were tuned at; all lengths scale relative to this so difficulty matches across screen sizes
   const DANGER_HOLD_MS = 1200;
   const SPAWN_GRACE_MS = 700;
   const DROP_COOLDOWN_MS = 420;
@@ -64,6 +65,11 @@
   let WIDTH = 0;
   let HEIGHT = 0;
   let DPR = Math.max(1, window.devicePixelRatio || 1);
+  let scale = 1;
+
+  function scaledRadius(tierIndex) {
+    return TIERS[tierIndex].radius * scale;
+  }
 
   let wallLeft, wallRight, wallFloor;
 
@@ -97,6 +103,7 @@
 
     WIDTH = newW;
     HEIGHT = newH;
+    scale = WIDTH / REFERENCE_WIDTH;
     buildWalls(WIDTH, HEIGHT);
   }
 
@@ -147,13 +154,12 @@
   }
 
   function clampPendingX() {
-    const r = TIERS[pendingTierIndex].radius;
+    const r = scaledRadius(pendingTierIndex);
     pendingX = Math.min(Math.max(pendingX, r + 4), WIDTH - r - 4);
   }
 
   function spawnCat(tierIndex, x, y) {
-    const tier = TIERS[tierIndex];
-    const body = Bodies.circle(x, y, tier.radius, {
+    const body = Bodies.circle(x, y, scaledRadius(tierIndex), {
       restitution: 0.15,
       friction: 0.4,
       frictionAir: 0.001,
@@ -169,7 +175,7 @@
   function dropPending() {
     if (dropLocked || !running) return;
     clampPendingX();
-    spawnCat(pendingTierIndex, pendingX, TIERS[pendingTierIndex].radius + 6);
+    spawnCat(pendingTierIndex, pendingX, scaledRadius(pendingTierIndex) + 6);
     dropLocked = true;
     setTimeout(() => {
       dropLocked = false;
@@ -395,7 +401,7 @@
       if (now - b.spawnTime < SPAWN_GRACE_MS) return;
       const speed = Math.hypot(b.velocity.x, b.velocity.y);
       if (speed > 1.2) return;
-      if (b.position.y - b.circleRadius < DANGER_Y) danger = true;
+      if (b.position.y - b.circleRadius < DANGER_Y * scale) danger = true;
     });
 
     if (danger) {
@@ -452,8 +458,8 @@
     ctx.lineWidth = 2;
     ctx.setLineDash([6, 6]);
     ctx.beginPath();
-    ctx.moveTo(0, DANGER_Y);
-    ctx.lineTo(WIDTH, DANGER_Y);
+    ctx.moveTo(0, DANGER_Y * scale);
+    ctx.lineTo(WIDTH, DANGER_Y * scale);
     ctx.stroke();
     ctx.restore();
   }
@@ -461,7 +467,7 @@
   function drawCat(body) {
     const tier = TIERS[body.tierIndex];
     const { x, y } = body.position;
-    const r = tier.radius;
+    const r = body.circleRadius;
 
     ctx.save();
     ctx.translate(x, y);
@@ -489,26 +495,27 @@
   function drawPendingGhost() {
     if (!running) return;
     const tier = TIERS[pendingTierIndex];
-    const y = tier.radius + 6;
+    const r = scaledRadius(pendingTierIndex);
+    const y = r + 6;
     ctx.save();
     ctx.globalAlpha = dropLocked ? 0.35 : 0.85;
     ctx.strokeStyle = "rgba(226, 109, 146, 0.5)";
     ctx.setLineDash([4, 4]);
     ctx.beginPath();
-    ctx.moveTo(pendingX, y + tier.radius);
+    ctx.moveTo(pendingX, y + r);
     ctx.lineTo(pendingX, HEIGHT);
     ctx.stroke();
     ctx.setLineDash([]);
 
     ctx.translate(pendingX, y);
     ctx.beginPath();
-    ctx.arc(0, 0, tier.radius, 0, Math.PI * 2);
+    ctx.arc(0, 0, r, 0, Math.PI * 2);
     ctx.fillStyle = tier.color;
     ctx.fill();
-    ctx.font = `${Math.round(tier.radius * 1.15)}px "Segoe UI Emoji", sans-serif`;
+    ctx.font = `${Math.round(r * 1.15)}px "Segoe UI Emoji", sans-serif`;
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
-    ctx.fillText(tier.emoji, 0, tier.radius * 0.05);
+    ctx.fillText(tier.emoji, 0, r * 0.05);
     ctx.restore();
   }
 
