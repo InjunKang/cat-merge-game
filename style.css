@@ -308,7 +308,8 @@ canvas#game-canvas {
   width: 260px;
   max-height: 260px;
   overflow-y: auto;
-  margin: 12px 0;
+  margin: 12px auto;
+  padding-left: 0;
   text-align: left;
 }
 
