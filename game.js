@@ -41,6 +41,19 @@
   const comboReactionEl = document.getElementById("combo-reaction");
   const comboBarFillEl = document.getElementById("combo-bar-fill");
 
+  const leaderboardBtn = document.getElementById("leaderboard-btn");
+  const leaderboardModal = document.getElementById("leaderboard-modal");
+  const leaderboardListEl = document.getElementById("leaderboard-list");
+  const leaderboardStatusEl = document.getElementById("leaderboard-status");
+  const leaderboardCloseBtn = document.getElementById("leaderboard-close-btn");
+  const rankEntryEl = document.getElementById("rank-entry");
+  const rankEntryMessageEl = document.getElementById("rank-entry-message");
+  const rankNameInput = document.getElementById("rank-name-input");
+  const rankSubmitBtn = document.getElementById("rank-submit-btn");
+  const rankResultEl = document.getElementById("rank-result");
+  const rankResultStatusEl = document.getElementById("rank-result-status");
+  const rankLeaderboardListEl = document.getElementById("rank-leaderboard-list");
+
   const BEST_KEY = "catMergeBest";
 
   // ---------- Physics engine ----------
@@ -291,6 +304,85 @@
     shake.time = duration;
   }
 
+  // ---------- Leaderboard ----------
+  function renderLeaderboardRows(listEl, rows, highlightName, highlightScore) {
+    listEl.innerHTML = "";
+    rows.forEach((row, i) => {
+      const li = document.createElement("li");
+      if (row.name === highlightName && row.score === highlightScore) {
+        li.classList.add("highlight");
+      }
+      const rankSpan = document.createElement("span");
+      rankSpan.className = "rank";
+      rankSpan.textContent = `${i + 1}`;
+      const nameSpan = document.createElement("span");
+      nameSpan.className = "name";
+      nameSpan.textContent = row.name;
+      const scoreSpan = document.createElement("span");
+      scoreSpan.className = "score";
+      scoreSpan.textContent = row.score;
+      li.append(rankSpan, nameSpan, scoreSpan);
+      listEl.appendChild(li);
+    });
+  }
+
+  async function openLeaderboardModal() {
+    leaderboardModal.classList.remove("hidden");
+    leaderboardListEl.innerHTML = "";
+    leaderboardStatusEl.classList.add("hidden");
+    try {
+      const rows = await window.Leaderboard.fetchTopScores();
+      renderLeaderboardRows(leaderboardListEl, rows);
+    } catch (err) {
+      leaderboardStatusEl.textContent = "순위표를 불러올 수 없습니다.";
+      leaderboardStatusEl.classList.remove("hidden");
+    }
+  }
+
+  leaderboardBtn.addEventListener("click", openLeaderboardModal);
+  leaderboardCloseBtn.addEventListener("click", () => {
+    leaderboardModal.classList.add("hidden");
+  });
+
+  async function handleGameOverRanking(finalScore) {
+    rankEntryEl.classList.add("hidden");
+    rankResultEl.classList.add("hidden");
+    rankNameInput.value = "";
+    try {
+      const { qualifies, rank, top } = await window.Leaderboard.getRankForScore(finalScore);
+      if (qualifies) {
+        rankEntryEl.classList.remove("hidden");
+        rankEntryMessageEl.textContent = `축하합니다! ${rank}위에 등록할 수 있어요!`;
+        rankSubmitBtn.onclick = () => submitRankEntry(finalScore);
+      } else {
+        showRankResult(top, null, null, "아쉽지만 10위 안에 들지 못했어요. 순위표를 확인해보세요!");
+      }
+    } catch (err) {
+      showRankResult([], null, null, "순위표를 불러올 수 없습니다.");
+    }
+  }
+
+  async function submitRankEntry(finalScore) {
+    const name = rankNameInput.value.trim().slice(0, 12) || "익명";
+    rankSubmitBtn.disabled = true;
+    try {
+      await window.Leaderboard.submitScore(name, finalScore);
+      const top = await window.Leaderboard.fetchTopScores();
+      showRankResult(top, name, finalScore, "등록 완료!");
+    } catch (err) {
+      rankEntryMessageEl.textContent = "등록에 실패했습니다. 다시 시도해주세요.";
+    } finally {
+      rankSubmitBtn.disabled = false;
+    }
+  }
+
+  function showRankResult(rows, highlightName, highlightScore, statusText) {
+    rankEntryEl.classList.add("hidden");
+    rankResultEl.classList.remove("hidden");
+    rankResultStatusEl.textContent = statusText;
+    renderLeaderboardRows(rankLeaderboardListEl, rows, highlightName, highlightScore);
+  }
+
   // ---------- Game over ----------
   function checkGameOver(dt) {
     const now = performance.now();
@@ -318,6 +410,7 @@
     finalScoreEl.textContent = score;
     finalComboEl.textContent = maxCombo;
     gameOverModal.classList.remove("hidden");
+    handleGameOverRanking(score);
   }
 
   function resetGame() {
@@ -331,6 +424,9 @@
     pendingTierIndex = randomSpawnTier();
     updateNextPreview();
     gameOverModal.classList.add("hidden");
+    rankEntryEl.classList.add("hidden");
+    rankResultEl.classList.add("hidden");
+    rankNameInput.value = "";
 
     combo = 0;
     comboTimer = 0;

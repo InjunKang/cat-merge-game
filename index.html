@@ -20,6 +20,7 @@
           <span id="best">0</span>
         </div>
       </div>
+      <button id="leaderboard-btn" class="leaderboard-btn">🏆 순위표</button>
     </header>
 
     <div id="stage-wrap">
@@ -46,11 +47,34 @@
       <p>최종 점수</p>
       <p id="final-score">0</p>
       <p id="final-combo-line">최고 콤보 <span id="final-combo">0</span></p>
+
+      <div id="rank-entry" class="hidden">
+        <p id="rank-entry-message"></p>
+        <input id="rank-name-input" type="text" maxlength="12" placeholder="이름을 입력하세요" />
+        <button id="rank-submit-btn">등록</button>
+      </div>
+
+      <div id="rank-result" class="hidden">
+        <p id="rank-result-status"></p>
+        <ol id="rank-leaderboard-list" class="leaderboard-list"></ol>
+      </div>
+
       <button id="restart-btn">다시하기</button>
     </div>
   </div>
 
+  <div id="leaderboard-modal" class="hidden">
+    <div class="modal-card">
+      <h2>🏆 순위표</h2>
+      <p id="leaderboard-status" class="hidden"></p>
+      <ol id="leaderboard-list" class="leaderboard-list"></ol>
+      <button id="leaderboard-close-btn">닫기</button>
+    </div>
+  </div>
+
   <script src="lib/matter.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <script src="leaderboard.js"></script>
   <script src="game.js"></script>
 </body>
 </html>
