@@ -344,6 +344,45 @@
     leaderboardModal.classList.add("hidden");
   });
 
+  async function handleGameOverRanking(finalScore) {
+    rankEntryEl.classList.add("hidden");
+    rankResultEl.classList.add("hidden");
+    rankNameInput.value = "";
+    try {
+      const { qualifies, rank, top } = await window.Leaderboard.getRankForScore(finalScore);
+      if (qualifies) {
+        rankEntryEl.classList.remove("hidden");
+        rankEntryMessageEl.textContent = `축하합니다! ${rank}위에 등록할 수 있어요!`;
+        rankSubmitBtn.onclick = () => submitRankEntry(finalScore);
+      } else {
+        showRankResult(top, null, null, "아쉽지만 10위 안에 들지 못했어요. 순위표를 확인해보세요!");
+      }
+    } catch (err) {
+      showRankResult([], null, null, "순위표를 불러올 수 없습니다.");
+    }
+  }
+
+  async function submitRankEntry(finalScore) {
+    const name = rankNameInput.value.trim().slice(0, 12) || "익명";
+    rankSubmitBtn.disabled = true;
+    try {
+      await window.Leaderboard.submitScore(name, finalScore);
+      const top = await window.Leaderboard.fetchTopScores();
+      showRankResult(top, name, finalScore, "등록 완료!");
+    } catch (err) {
+      rankEntryMessageEl.textContent = "등록에 실패했습니다. 다시 시도해주세요.";
+    } finally {
+      rankSubmitBtn.disabled = false;
+    }
+  }
+
+  function showRankResult(rows, highlightName, highlightScore, statusText) {
+    rankEntryEl.classList.add("hidden");
+    rankResultEl.classList.remove("hidden");
+    rankResultStatusEl.textContent = statusText;
+    renderLeaderboardRows(rankLeaderboardListEl, rows, highlightName, highlightScore);
+  }
+
   // ---------- Game over ----------
   function checkGameOver(dt) {
     const now = performance.now();
@@ -371,6 +410,7 @@
     finalScoreEl.textContent = score;
     finalComboEl.textContent = maxCombo;
     gameOverModal.classList.remove("hidden");
+    handleGameOverRanking(score);
   }
 
   function resetGame() {
@@ -384,6 +424,9 @@
     pendingTierIndex = randomSpawnTier();
     updateNextPreview();
     gameOverModal.classList.add("hidden");
+    rankEntryEl.classList.add("hidden");
+    rankResultEl.classList.add("hidden");
+    rankNameInput.value = "";
 
     combo = 0;
     comboTimer = 0;
