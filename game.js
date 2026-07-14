@@ -41,6 +41,19 @@
   const comboReactionEl = document.getElementById("combo-reaction");
   const comboBarFillEl = document.getElementById("combo-bar-fill");
 
+  const leaderboardBtn = document.getElementById("leaderboard-btn");
+  const leaderboardModal = document.getElementById("leaderboard-modal");
+  const leaderboardListEl = document.getElementById("leaderboard-list");
+  const leaderboardStatusEl = document.getElementById("leaderboard-status");
+  const leaderboardCloseBtn = document.getElementById("leaderboard-close-btn");
+  const rankEntryEl = document.getElementById("rank-entry");
+  const rankEntryMessageEl = document.getElementById("rank-entry-message");
+  const rankNameInput = document.getElementById("rank-name-input");
+  const rankSubmitBtn = document.getElementById("rank-submit-btn");
+  const rankResultEl = document.getElementById("rank-result");
+  const rankResultStatusEl = document.getElementById("rank-result-status");
+  const rankLeaderboardListEl = document.getElementById("rank-leaderboard-list");
+
   const BEST_KEY = "catMergeBest";
 
   // ---------- Physics engine ----------
@@ -290,6 +303,46 @@
     shake.duration = duration;
     shake.time = duration;
   }
+
+  // ---------- Leaderboard ----------
+  function renderLeaderboardRows(listEl, rows, highlightName, highlightScore) {
+    listEl.innerHTML = "";
+    rows.forEach((row, i) => {
+      const li = document.createElement("li");
+      if (row.name === highlightName && row.score === highlightScore) {
+        li.classList.add("highlight");
+      }
+      const rankSpan = document.createElement("span");
+      rankSpan.className = "rank";
+      rankSpan.textContent = `${i + 1}`;
+      const nameSpan = document.createElement("span");
+      nameSpan.className = "name";
+      nameSpan.textContent = row.name;
+      const scoreSpan = document.createElement("span");
+      scoreSpan.className = "score";
+      scoreSpan.textContent = row.score;
+      li.append(rankSpan, nameSpan, scoreSpan);
+      listEl.appendChild(li);
+    });
+  }
+
+  async function openLeaderboardModal() {
+    leaderboardModal.classList.remove("hidden");
+    leaderboardListEl.innerHTML = "";
+    leaderboardStatusEl.classList.add("hidden");
+    try {
+      const rows = await window.Leaderboard.fetchTopScores();
+      renderLeaderboardRows(leaderboardListEl, rows);
+    } catch (err) {
+      leaderboardStatusEl.textContent = "순위표를 불러올 수 없습니다.";
+      leaderboardStatusEl.classList.remove("hidden");
+    }
+  }
+
+  leaderboardBtn.addEventListener("click", openLeaderboardModal);
+  leaderboardCloseBtn.addEventListener("click", () => {
+    leaderboardModal.classList.add("hidden");
+  });
 
   // ---------- Game over ----------
   function checkGameOver(dt) {
