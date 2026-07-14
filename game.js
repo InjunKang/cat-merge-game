@@ -334,6 +334,7 @@
       const rows = await window.Leaderboard.fetchTopScores();
       renderLeaderboardRows(leaderboardListEl, rows);
     } catch (err) {
+      console.error("리더보드 조회 실패:", err);
       leaderboardStatusEl.textContent = "순위표를 불러올 수 없습니다.";
       leaderboardStatusEl.classList.remove("hidden");
     }
@@ -358,6 +359,7 @@
         showRankResult(top, null, null, "아쉽지만 10위 안에 들지 못했어요. 순위표를 확인해보세요!");
       }
     } catch (err) {
+      console.error("순위 확인 실패:", err);
       showRankResult([], null, null, "순위표를 불러올 수 없습니다.");
     }
   }
@@ -370,6 +372,7 @@
       const top = await window.Leaderboard.fetchTopScores();
       showRankResult(top, name, finalScore, "등록 완료!");
     } catch (err) {
+      console.error("점수 등록 실패:", err);
       rankEntryMessageEl.textContent = "등록에 실패했습니다. 다시 시도해주세요.";
     } finally {
       rankSubmitBtn.disabled = false;
