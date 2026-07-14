@@ -1,8 +1,8 @@
 (() => {
   "use strict";
 
-  const SUPABASE_URL = "YOUR_SUPABASE_URL"; // TODO: Task 6에서 실제 Supabase Project URL로 교체
-  const SUPABASE_ANON_KEY = "YOUR_SUPABASE_ANON_KEY"; // TODO: Task 6에서 실제 anon public key로 교체
+  const SUPABASE_URL = "https://cccyytcyxwbmuletenfr.supabase.co";
+  const SUPABASE_ANON_KEY = "sb_publishable_Y2SBNcK7NIyURK2nCqAtWw_NATueWAf";
   const TABLE_NAME = "leaderboard";
   const TOP_N = 10;
 
