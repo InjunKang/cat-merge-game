@@ -115,6 +115,7 @@
   bestEl.textContent = best;
 
   let pendingTierIndex = randomSpawnTier();
+  let nextTierIndex = randomSpawnTier();
   let pendingX = 0;
   let dropLocked = false;
   let dangerTimer = 0;
@@ -133,7 +134,7 @@
   }
 
   function updateNextPreview() {
-    nextPreviewEl.textContent = TIERS[pendingTierIndex].emoji;
+    nextPreviewEl.textContent = TIERS[nextTierIndex].emoji;
   }
 
   function buildTierbar() {
@@ -180,7 +181,8 @@
     setTimeout(() => {
       dropLocked = false;
     }, DROP_COOLDOWN_MS);
-    pendingTierIndex = randomSpawnTier();
+    pendingTierIndex = nextTierIndex;
+    nextTierIndex = randomSpawnTier();
     updateNextPreview();
   }
 
@@ -431,6 +433,7 @@
     dangerTimer = 0;
     pendingMerges.length = 0;
     pendingTierIndex = randomSpawnTier();
+    nextTierIndex = randomSpawnTier();
     updateNextPreview();
     gameOverModal.classList.add("hidden");
     rankEntryEl.classList.add("hidden");
