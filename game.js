@@ -36,6 +36,9 @@
   const gameOverModal = document.getElementById("game-over-modal");
   const finalScoreEl = document.getElementById("final-score");
   const finalComboEl = document.getElementById("final-combo");
+  const playTimeEl = document.getElementById("play-time");
+  const totalPlaysEl = document.getElementById("total-plays");
+  const totalTimeEl = document.getElementById("total-time");
   const restartBtn = document.getElementById("restart-btn");
   const comboBadgeEl = document.getElementById("combo-badge");
   const comboCountEl = document.getElementById("combo-count");
@@ -56,6 +59,8 @@
   const rankLeaderboardListEl = document.getElementById("rank-leaderboard-list");
 
   const BEST_KEY = "catMergeBest";
+  const TOTAL_PLAYS_KEY = "catMergeTotalPlays";
+  const TOTAL_TIME_KEY = "catMergeTotalTimeMs";
 
   // ---------- Physics engine ----------
   const engine = Engine.create();
@@ -113,6 +118,21 @@
   let score = 0;
   let best = Number(localStorage.getItem(BEST_KEY) || 0);
   bestEl.textContent = best;
+
+  let totalPlays = Number(localStorage.getItem(TOTAL_PLAYS_KEY) || 0);
+  let totalTimeMs = Number(localStorage.getItem(TOTAL_TIME_KEY) || 0);
+  let gameStartTime = performance.now();
+
+  function formatDuration(ms) {
+    const totalSeconds = Math.floor(ms / 1000);
+    const hours = Math.floor(totalSeconds / 3600);
+    const minutes = Math.floor((totalSeconds % 3600) / 60);
+    const seconds = totalSeconds % 60;
+    if (hours > 0) {
+      return `${hours}:${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+    }
+    return `${minutes}:${String(seconds).padStart(2, "0")}`;
+  }
 
   let pendingTierIndex = randomSpawnTier();
   let nextTierIndex = randomSpawnTier();
@@ -420,6 +440,16 @@
     running = false;
     finalScoreEl.textContent = score;
     finalComboEl.textContent = maxCombo;
+
+    const playTimeMs = performance.now() - gameStartTime;
+    totalPlays += 1;
+    totalTimeMs += playTimeMs;
+    localStorage.setItem(TOTAL_PLAYS_KEY, String(totalPlays));
+    localStorage.setItem(TOTAL_TIME_KEY, String(totalTimeMs));
+    playTimeEl.textContent = formatDuration(playTimeMs);
+    totalPlaysEl.textContent = totalPlays;
+    totalTimeEl.textContent = formatDuration(totalTimeMs);
+
     gameOverModal.classList.remove("hidden");
     handleGameOverRanking(score);
   }
@@ -452,6 +482,7 @@
 
     running = true;
     lastTime = performance.now();
+    gameStartTime = performance.now();
   }
 
   // ---------- Rendering ----------

@@ -263,11 +263,28 @@ canvas#game-canvas {
 
 #final-combo-line {
   font-size: 0.95rem;
-  margin-bottom: 18px;
+  margin-bottom: 4px;
 }
 
 #final-combo {
   font-weight: 800;
+  color: var(--accent-dark);
+}
+
+#play-time-line {
+  font-size: 0.85rem;
+  margin-bottom: 4px;
+}
+
+#total-stats-line {
+  font-size: 0.85rem;
+  margin-bottom: 18px;
+}
+
+#play-time,
+#total-plays,
+#total-time {
+  font-weight: 700;
   color: var(--accent-dark);
 }
 
